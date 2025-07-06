@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Flowbite CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+
+    <!-- Flowbite JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+    {% extends 'myapp/base_tailwind.html' %}
+    {% block content %}
+
+<!--    progress bar-->
+    <div class="w-full bg-white p-8 rounded-lg shadow-lg mx-auto">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Booking Progress</h2>
+
+        <div class="relative mb-8">
+            <!-- Progress Line -->
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full h-1 bg-gray-300 rounded-full"></div>
+            </div>
+
+            <!-- Steps Container -->
+            <div class="relative flex justify-between z-10">
+                <!-- Step 1: Seat Selection (Active) -->
+                <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white font-bold shadow-md">1</div>
+                    <div class="text-sm mt-2 text-blue-600 font-semibold text-center">Seat Selection</div>
+                </div>
+
+                <!-- Step 2: Traveller Info -->
+                <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">2</div>
+                    <div class="text-sm mt-2 text-gray-500 text-center">Traveller Info</div>
+                </div>
+
+                <!-- Step 3: Payment -->
+                <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">3</div>
+                    <div class="text-sm mt-2 text-gray-500 text-center">Payment</div>
+                </div>
+
+                <!-- Step 4: Confirm -->
+                <div class="flex flex-col items-center">
+                    <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">4</div>
+                    <div class="text-sm mt-2 text-gray-500 text-center">Confirm</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+    {% endblock %}
+
+</body>
+</html>

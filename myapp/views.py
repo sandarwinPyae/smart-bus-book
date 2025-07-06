@@ -336,3 +336,7 @@ def FeedbackForm(request, booking_id):
 def FeedbackList(request):
     feedback_list = Feedback.objects.all()
     return render(request, 'myapp/feedback_list.html', {'feedbacks': feedback_list})
+
+
+def seat_selection(request):
+    return render(request,'myapp/seat_selection.html')

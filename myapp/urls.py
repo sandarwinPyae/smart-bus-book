@@ -19,4 +19,5 @@ urlpatterns = [
     path('bookings/payement/success/<int:booking_id>/feedback/', views.FeedbackForm, name='feedback'),  # URL for feedback form
     path('bookings/payement/success/<int:booking_id>/feedback/list/', views.FeedbackList, name='feedback_list'),
 
+    path('seatselection',views.seat_selection),
 ]
