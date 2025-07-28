@@ -1,3 +1,6 @@
+
+
+
 from django.shortcuts import render
 from datetime import datetime
 from django.contrib import messages
@@ -5,6 +8,8 @@ from django.shortcuts import render
 from decimal import Decimal
 from django.db import IntegrityError
 from django.contrib.auth import login
+from django.template.context_processors import request
+
 from .models import Feedback
 # Create your views here.
 from django.shortcuts import render, redirect
@@ -73,13 +78,18 @@ def search_routes(request):
     dest_r = request.GET.get('to')
     date_r = request.GET.get('departure_date')
     seat_r = request.GET.get('number_of_seats')
-    available_routes = Bus.objects.filter(source__iexact = source_r, dest__iexact = dest_r, date__exact = date_r)
+    available_routes = Bus.objects.filter(
+        source__iexact = source_r,
+        dest__iexact = dest_r,
+        date__exact = date_r)
+    bookings = Bus.objects.all()
     return render(request,'available_routes.html',{
         'available_routes':available_routes,
-        'source': source_r,
-        'dest': dest_r,
-        'date': date_r,
-        'seat': seat_r,
+        'selected_source': source_r,
+        'selected_dest': dest_r,
+        'selected_date': date_r,
+        'selected_seat': seat_r,
+        'bookings':bookings,
     })
 
 
@@ -355,5 +365,27 @@ def FeedbackList(request):
     feedback_list = Feedback.objects.all()
     return render(request, 'feedback_list.html', {'feedbacks': feedback_list})
 
-def seat_selection(request):
-    return render(request, 'seat_selection.html')
+def seat_selection(request,bus_id):
+    selected_bus = Bus.objects.get(id=bus_id)
+    source = request.GET.get('from')
+    dest = request.GET.get('to')
+    date = request.GET.get('departure_date')
+    seats = request.GET.get('number_of_seats')
+    seats = int(seats)
+    total_price=Decimal(seats)*selected_bus.price
+    context={
+        'bus':selected_bus,
+        'source':source,
+        'dest':dest,
+        'date':date,
+        'seats':seats,
+        'total_price':total_price,
+    }
+    return render(request, 'seat_selection.html',context)
+
+
+
+
+# Admin Dashboard
+def admin_dashboard(request):
+    return render(request,'admin/dashboard.html')
