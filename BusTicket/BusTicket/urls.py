@@ -27,17 +27,22 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name="home"),
     path('search/',views.search_routes, name='search_routes'),
-    # path('home', views.home, name="home"),
-    path('login', views.user_login, name="login"),
+    path('select-trip/<int:schedule_id>/', views.seat_selection, name='select_trip'),
+    path('select-seats/<int:schedule_id>/submit/', views.submit_seats, name='submit_seats'),
+    path('home', views.home, name="home"),
+    path('login/', views.user_login, name="login"),
+    path('signup/', views.signup, name="signup"),
+    path('signin/', views.signin, name="signin"),
+    path('signout/', views.signout, name="signout"),
+
     # path('findbus', views.findbus, name="findbus"),
     # path('bookings', views.bookings, name="bookings"),
     # path('cancellings', views.cancellings, name="cancellings"),
     # path('seebookings', views.seebookings, name="seebookings"),
-    path('signup', views.signup, name="signup"),
-    path('signin', views.signin, name="signin"),
+
     # path('success', views.success, name="success"),
     # path('download_ticket/<int:booking_id>/', views.download_ticket, name='download_ticket'),
-    path('signout', views.signout, name="signout"),
+
     # path('bookings/payement/<int:booking_id>/', views.payment_page, name='payement'),
     # path('bookings/payement/success/<int:booking_id>/', views.payment_success, name='payment_success'),
     # path('bookings/payement/success/<int:booking_id>/feedback/', views.FeedbackForm, name='feedback'),
@@ -45,7 +50,6 @@ urlpatterns = [
     # path('bookings/payement/success/<int:booking_id>/feedback/list/', views.FeedbackList, name='feedback_list'),
     #
     # path('seatselection',views.seat_selection),
-    path('select-trip/<int:bus_id>/',views.seat_selection,name='select_trip'),
     #
 
     # admin url call
@@ -60,4 +64,12 @@ urlpatterns = [
     path('admindashboard/route_home/add_new_route/',views.add_route,name='route_add'),
     path('admindashboard/route_home/<int:route_id>/update/',views.update_route,name='route_update'),
     path('admindashboard/route_home/<int:route_id>/delete/',views.delete_route,name='route_delete'),
+    path('admindashboard/bus_home/',views.bus_home,name='bus_home'),
+    path('admindashboard/bus_home/add_new_bus/',views.add_bus,name='bus_add'),
+    path('admindashboard/bus_home/<int:bus_id>/update/',views.update_bus,name='bus_update'),
+    path('admindashboard/bus_home/<int:bus_id>/delete/',views.delete_bus,name='bus_delete'),
+    path('admindashboard/schedule_home/',views.schedule_home,name='schedule_home'),
+    path('admindashboard/schedule_home/add_new_schedule/',views.add_schedule,name='schedule_add'),
+    path('admindashboard/schedule_home/<int:schedule_id>/update/',views.update_schedule,name='schedule_update'),
+    path('admindashboard/schedule_home/<int:schedule_id>/delete/',views.delete_schedule,name='schedule_delete'),
 ]

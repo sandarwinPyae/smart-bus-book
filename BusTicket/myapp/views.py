@@ -13,7 +13,7 @@ from django.template.context_processors import request
 # Create your views here.
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from .models import User, Operator, Bus, Route, Schedule,Booking,Ticket
+from .models import User, Operator, Bus, Route, Schedule,Booking,Ticket,Seat_Status
 from django.urls import reverse
 from django.contrib.auth import authenticate, login, logout
 # from django.contrib.auth.models import User
@@ -39,6 +39,8 @@ from io import BytesIO
 from .forms import BookingForm
 from .forms import OperatorForm
 from .forms import RouteForm
+from .forms import BusForm
+from .forms import ScheduleForm
 from django.shortcuts import render
 from datetime import datetime
 from .models import Route, Schedule
@@ -115,6 +117,14 @@ def search_routes(request):
 
     # GET with no query params -> show base form (empty)
     return render(request, 'base.html', context)
+
+from django.http import HttpResponse
+
+def submit_seats(request, schedule_id):
+    if request.method == "POST":
+        selected_seats = request.POST.getlist('selected_seats')
+        return HttpResponse(f"Selected seats: {', '.join(selected_seats)}")
+    return HttpResponse(status=405)
 
 
 
@@ -236,12 +246,15 @@ def home(request):
 def signup(request):
     context = {}
     if request.method == 'POST':
-        email_r = request.POST.get('email')
         name_r = request.POST.get('name')
+        email_r = request.POST.get('email')
         password_r = request.POST.get('password')
+        nrc_r = request.POST.get('nrc')
+        address_r = request.POST.get('address')
+        phone_no_r = request.POST.get('phone_no')
 
         # Check if the username already exists
-        if User.objects.filter(username=name_r).exists():
+        if User.objects.filter(name=name_r).exists():
             context["error"] = "Username already exists, please choose another one."
             return render(request, 'signup.html', context)
 
@@ -249,9 +262,19 @@ def signup(request):
         if User.objects.filter(email=email_r).exists():
             context["error"] = "Email is already registered, please choose another one."
             return render(request, 'signup.html', context)
+        if nrc_r and User.objects.filter(nrc=nrc_r).exists():
+            context['error'] = "NRC already exists."
+            return render(request, 'signup.html', context)
 
         try:
-            user = User.objects.create_user(username=name_r, email=email_r, password=password_r)
+            user = User.objects.create(
+                name=name_r,
+                email=email_r,
+                password=make_password(password_r),
+                nrc=nrc_r,
+                address=address_r,
+                phone_no=phone_no_r
+            )
             if user:
                 login(request, user)
                 return render(request, 'thank.html')
@@ -405,21 +428,22 @@ def signout(request):
 #     feedback_list = Feedback.objects.all()
 #     return render(request, 'feedback_list.html', {'feedbacks': feedback_list})
 #
-def seat_selection(request,bus_id):
-    selected_bus = Bus.objects.get(id=bus_id)
-    source = request.GET.get('from')
-    dest = request.GET.get('to')
-    date = request.GET.get('departure_date')
+def seat_selection(request,schedule_id):
+    selected_bus = Schedule.objects.get(id=schedule_id)
+    # source = request.GET.get('from')
+    # dest = request.GET.get('to')
+    # date = request.GET.get('departure_date')
     seats = request.GET.get('number_of_seats')
     seats = int(seats)
     total_price=Decimal(seats)*selected_bus.price
     context={
         'bus':selected_bus,
-        'source':source,
-        'dest':dest,
-        'date':date,
+        'origin':selected_bus.route.origin,
+        'destination':selected_bus.route.destination,
+        'date':selected_bus.date,
         'seats':seats,
         'total_price':total_price,
+        'schedule_id':selected_bus.id,
     }
     return render(request, 'seat_selection.html',context)
 
@@ -506,7 +530,7 @@ def add_operator(request):
     else:
         operator_form = OperatorForm()
 
-    return render(request,'admin/operator_add_form.html',{'operator_form' : operator_form})
+    return render(request,'admin/operator_add_form.html',{'form' : operator_form})
 
 def update_operator(request,operator_id):
     operator_info = Operator.objects.get(pk = operator_id)
@@ -533,6 +557,11 @@ def delete_operator(request,operator_id):
     return redirect('operator_home')
 
 # route home page in admin
+from django.shortcuts import render
+from django.db.models import Q
+from .models import Route  # Assuming your model is named Route
+
+
 def route_home(request):
     origin_query = request.GET.get('origin', '')
     destination_query = request.GET.get('destination', '')
@@ -544,6 +573,9 @@ def route_home(request):
 
     if destination_query:
         routes = routes.filter(Q(destination__icontains=destination_query))
+
+    # This is the correct way to order the queryset
+    routes = routes.order_by('-updated_date')
 
     context = {
         'routes': routes,
@@ -586,3 +618,143 @@ def delete_route(request,route_id):
         route_info.save()
 
     return redirect('route_home')
+
+# Admin Bus Section
+def bus_home(request):
+    license_query = request.GET.get('license_no', '')
+    operator_query = request.GET.get('operator', '')
+
+    buses = Bus.objects.all()
+
+    if license_query:
+        buses = buses.filter(Q(license_no__icontains=license_query))
+
+    if operator_query:
+        buses = buses.filter(Q(operator__id=operator_query))
+
+    buses = buses.order_by('-updated_date')
+    operators = Operator.objects.all()
+
+    context = {
+        'buses': buses,
+        'operators': operators,
+        'license_query': license_query,
+        'operator_query': operator_query,
+    }
+
+    return render(request, 'admin/bus_home.html', context)
+
+def add_bus(request):
+    if request.method == 'POST':
+        bus_form = BusForm(request.POST)
+        if bus_form.is_valid():
+            bus_form.save()
+            return redirect('bus_home')
+    else:
+        bus_form = BusForm()
+    return render(request,'admin/bus_add_form.html',{'form' : bus_form})
+
+
+def update_bus(request,bus_id):
+    bus_info = Bus.objects.get(pk= bus_id)
+
+    if request.method == 'POST':
+        bus_form = BusForm(request.POST, instance=bus_info)
+        if bus_form.is_valid():
+            bus_form.save()
+            return redirect('bus_home')
+    else:
+        bus_form = BusForm(instance=bus_info)
+
+    return render(request,'admin/bus_update.html',{'bus_form':bus_form})
+
+def delete_bus(request,bus_id):
+    bus_info = Bus.objects.get(id=bus_id)
+    if bus_info.del_flag == 0:
+        bus_info.del_flag = 1
+        bus_info.save()
+    else:
+        bus_info.del_flag = 0
+        bus_info.save()
+
+    return redirect('bus_home')
+
+
+# Admin Schedule Section
+def schedule_home(request):
+
+    date_query = request.GET.get('date', '')
+    route_query = request.GET.get('route', '')
+
+    schedules = Schedule.objects.all()
+
+    if date_query:
+        schedules = schedules.filter(date__icontains=date_query)
+
+    if route_query:
+        schedules = schedules.filter(
+            Q(route__origin__icontains=route_query) | Q(route__destination__icontains=route_query)
+        )
+
+    schedules = schedules.order_by('-updated_date')
+
+    buses = Bus.objects.all()
+    routes = Route.objects.all()
+
+    context = {
+        'schedules': schedules,
+        'buses': buses,
+        'routes': routes,
+        'date_query': date_query,
+        'route_query': route_query,
+    }
+
+    # Render the schedule_home template with the context
+    return render(request, 'admin/schedule_home.html', context)
+
+def add_schedule(request):
+    if request.method == 'POST':
+        schedule_form = ScheduleForm(request.POST)
+        if schedule_form.is_valid():
+            print("Form is valid! Saving schedule...")
+            new_schedule = schedule_form.save()
+            bus = new_schedule.bus
+            seat_capacity = bus.seat_capacity
+            for seat_no in range(1, seat_capacity + 1):
+                Seat_Status.objects.create(
+                    schedule=new_schedule,
+                    seat_no=f"{seat_no:02d}"
+
+                )
+            return redirect('schedule_home')
+        else:
+            # This is the key change to debug the issue
+            print("Form is NOT valid! Errors:", schedule_form.errors)
+    else:
+        schedule_form = ScheduleForm()
+    return render(request, 'admin/schedule_add_form.html', {'form': schedule_form})
+
+def update_schedule(request,schedule_id):
+    schedule_info = Schedule.objects.get(id=schedule_id)
+
+    if request.method == 'POST':
+        schedule_form = ScheduleForm(request.POST, instance=schedule_info)
+        if schedule_form.is_valid():
+            schedule_form.save()
+            return redirect('schedule_home')
+    else:
+        schedule_form = ScheduleForm(instance=schedule_info)
+
+    return render(request,'admin/schedule_update.html',{'form':schedule_form})
+
+
+def delete_schedule(request,schedule_id):
+    schedule_info = Schedule.objects.get(id=schedule_id)
+    if schedule_info.del_flag == 0:
+        schedule_info.del_flag = 1
+        schedule_info.save()
+    else:
+        schedule_info.del_flag = 0
+        schedule_info.save()
+
+    return redirect('schedule_home')
