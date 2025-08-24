@@ -24,33 +24,42 @@ from django.views.generic import TemplateView
 from myapp import views
 
 urlpatterns = [
+
     path('admin/', admin.site.urls),
     path('', views.home, name="home"),
+    path('about-us/',views.about_us,name='about_us'),
     path('search/',views.search_routes, name='search_routes'),
     path('select-trip/<int:schedule_id>/', views.seat_selection, name='select_trip'),
     path('select-seats/<int:schedule_id>/submit/', views.submit_seats, name='submit_seats'),
-    path('home', views.home, name="home"),
-    path('login/', views.user_login, name="login"),
-    path('signup/', views.signup, name="signup"),
-    path('signin/', views.signin, name="signin"),
-    path('signout/', views.signout, name="signout"),
+    # payment and booking by LLS
+    # URL to handle the payment form submission
+    # path('process-payment/<int:schedule_id>/',views.process_payment,name='process_payment'),
+    # URL pattern for the booking confirmation page
+    # path('booking-confirmation/', views.booking_confirmation, name='booking_confirmation'),
 
-    # path('findbus', views.findbus, name="findbus"),
-    # path('bookings', views.bookings, name="bookings"),
-    # path('cancellings', views.cancellings, name="cancellings"),
-    # path('seebookings', views.seebookings, name="seebookings"),
+    # path('bookings/',views.bookings,name='bookings'),
+    path('profile_page/',views.profile_page,name='profile_page'),
+    # path('seebookings/<int:booking_id>/',views.seebookings,name='seebookings'),
+    re_path(r'^seebookings/(?P<booking_id>\d+)?/?$', views.seebookings, name='seebookings'),
 
-    # path('success', views.success, name="success"),
-    # path('download_ticket/<int:booking_id>/', views.download_ticket, name='download_ticket'),
+    # payment and booking process by sdwp
+    path('process-payment/<int:user_id>/', views.process_payment, name='process_payment'),
+    path('booking-confirmation/<int:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
+    path('feedback/',views.feedback,name='feedback'),
+    path('feedback/success/', views.feedback_success, name='feedback_success'),
 
-    # path('bookings/payement/<int:booking_id>/', views.payment_page, name='payement'),
-    # path('bookings/payement/success/<int:booking_id>/', views.payment_success, name='payment_success'),
-    # path('bookings/payement/success/<int:booking_id>/feedback/', views.FeedbackForm, name='feedback'),
-    # URL for feedback form
-    # path('bookings/payement/success/<int:booking_id>/feedback/list/', views.FeedbackList, name='feedback_list'),
-    #
-    # path('seatselection',views.seat_selection),
-    #
+
+    # sdwp
+    path('register/',views.user_registration,name='register'),
+    path('accounts/login/',views.user_login,name='login'),
+    path('login-home/',views.logined_user_home,name='logined_user'),
+    path('accounts/logout/', views.logout_view, name="logout"),
+
+    path('forgot-password/', views.forgot_password_view, name='forgot_password'),
+    path('send_password_reset_email/', views.send_password_reset_email, name='send_password_reset_email'),
+    path('accounts/', include('django.contrib.auth.urls')),
+
+    path('contactus/',views.contact_us, name='contact_us'),
 
     # admin url call
     path('admindashboard/',views.admin_dashboard,name='admin_dashboard'),
@@ -72,4 +81,14 @@ urlpatterns = [
     path('admindashboard/schedule_home/add_new_schedule/',views.add_schedule,name='schedule_add'),
     path('admindashboard/schedule_home/<int:schedule_id>/update/',views.update_schedule,name='schedule_update'),
     path('admindashboard/schedule_home/<int:schedule_id>/delete/',views.delete_schedule,name='schedule_delete'),
+
+    path('admindashboard/bookings/', views.booking_list, name='booking_list'),
+    # path('admindashboard/bookings/create/', views.booking_create, name='booking_create'),
+    path('admindashboard/history/', views.history_list, name="history"),
+    path('admindashboard/feedback/', views.feedback_list,name='feedback_list'),
+    path('admindashboard/feedback_detail/<int:feedback_id>/',views.feedback_detail,name='feedback_detail'),
+    path('admindashboard/q_a/',views.question_answer_list,name='question_answer_list'),
+    path('admindashboard/q_a/add/',views.add_qa,name='qa_add'),
+    path('admindashboard/q_a/<int:qa_id>/update/',views.update_qa,name='qa_update'),
+    path('admindashboard/q_a/<int:qa_id>/delete/',views.delete_qa,name='qa_delete'),
 ]

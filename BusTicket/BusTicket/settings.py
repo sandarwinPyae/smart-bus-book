@@ -39,8 +39,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'myapp',
     'django.contrib.humanize',
+    'widget_tweaks',
 
 ]
+
+# Email settings for password reset
+# Use these for production environments, but use a Gmail App Password for security.
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'busticketsystm.noreply@gmail.com'  # Replace with your Gmail address
+EMAIL_HOST_PASSWORD = 'wzxp cocv elxq oozi' # Replace with your Gmail App Password
+DEFAULT_FROM_EMAIL = 'busticketsystm.noreply@gmail.com'
+
+AUTH_USER_MODEL = 'myapp.User'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -62,6 +76,8 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
+
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -81,7 +97,7 @@ WSGI_APPLICATION = 'BusTicket.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqllite3',
     }
 }
 
@@ -126,3 +142,21 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+AUTHENTICATION_BACKENDS = [
+    'myapp.backends.MyCustomAuthBackend',  # Your custom backend
+    # Keep the default backend as a fallback for other cases
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# SESSION SETTINGS
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
+
+# The URL where users are redirected for login when login_required is used
+LOGIN_URL = '/login/' # Or whatever your login URL path is, e.g., '/accounts/login/'
+
+# Optional: The URL to redirect to after successful login (if no 'next' parameter is provided)
+LOGIN_REDIRECT_URL = '/process-payment/' # Or '/dashboard/' or '/profile/' etc.
